@@ -1,0 +1,41 @@
+model:
+  output_size: 1024
+  style_dim: 512
+  n_mlp: 8
+  channel_multiplier: 2
+  encoder_input_size: 256
+  n_styles: 18
+  encoder_type: "Encoder4Editing"
+  encoder_num_layers: 50
+  encoder_mode: "ir_se"
+  start_from_latent_avg: true
+
+paths:
+  checkpoint: "weights/e4e_ffhq_encode.pt"
+  directions_dir: "weights/directions"
+  input_dir: "data/input_images"
+  results_dir: "results"
+
+editing:
+  attributes:
+    age:
+      file: "age.pt"
+      default_strength: 3.0
+      layer_range: null  # all layers
+    smile:
+      file: "smile.pt"
+      default_strength: 2.0
+      layer_range: null
+    pose:
+      file: "pose.pt"
+      default_strength: 3.0
+      layer_range: null
+    hair:
+      file: "hair.pt"
+      default_strength: 5.0
+      layer_range: [0, 7]  # coarse layers only for structural changes
+
+inference:
+  device: "cuda"
+  save_reconstructions: true
+  save_comparisons: true
