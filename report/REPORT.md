@@ -62,11 +62,11 @@ Despite these issues, modern architectures and training strategies significantly
 
 - **\(Z\)**: input noise space; entangled and less editable.
 - **\(W\)**: intermediate space; more disentangled and better for edits.
-- **\(W^+\)**: per-layer extension of \(W\):  
-  \[
-  w^+ = [w_1, w_2, \dots, w_L], \quad w_i \in \mathbb{R}^{512}
-  \]
-  For a 1024×1024 generator, \(L=18\). \(W^+\) increases reconstruction quality and local control but can reduce global consistency if edits are not layer-aware.
+- **\(W^+\)**: per-layer extension of \(W\):
+
+$$w^+ = [w_1, w_2, \dots, w_L], \quad w_i \in \mathbb{R}^{512}$$
+
+For a 1024×1024 generator, \(L=18\). \(W^+\) increases reconstruction quality and local control but can reduce global consistency if edits are not layer-aware.
 
 **Why StyleGAN2 here?** It offers strong prior for realistic faces and a latent structure where many semantic edits are approximately linear.
 
@@ -76,9 +76,7 @@ Despite these issues, modern architectures and training strategies significantly
 
 GANs generate images from latent codes, but **real images are not directly represented** in latent space. **GAN inversion** solves:
 
-\[
-\text{Given real image } x,\quad \text{find } w^+ \text{ such that } G(w^+) \approx x.
-\]
+$$\text{Given real image } x, \quad \text{find } w^+ \text{ such that } G(w^+) \approx x$$
 
 #### Why inversion is needed
 
@@ -95,9 +93,7 @@ GANs generate images from latent codes, but **real images are not directly repre
 
 **e4e** is an encoder-based inversion method designed to preserve **editability**. Instead of optimizing \(w^+\) per image (slow), e4e trains an encoder \(E\) to predict latent codes:
 
-\[
-w^+ = E(x).
-\]
+$$w^+ = E(x)$$
 
 In practice, e4e is typically trained to predict a **residual** around a mean latent \(\bar{w}\), producing stable and editable codes.
 
@@ -107,9 +103,7 @@ In practice, e4e is typically trained to predict a **residual** around a mean la
 
 The core idea is that some semantic attributes correspond to **approximately linear directions** \(d\) in latent space:
 
-\[
-w\_{\text{new}} = w + \alpha \, d
-\]
+$$w_{new} = w + \alpha \cdot d$$
 
 where:
 
@@ -337,68 +331,7 @@ Identity preservation depends primarily on inversion quality:
 - If alignment is correct and the face is in-distribution, reconstructions match well.
 - Poor alignment or heavy occlusion can cause identity drift because the encoder must “project” the image onto the generator manifold.
 
-### 7.3 Artifacts and failure modes
-
-Typical artifacts include:
-
-- **Over-editing** at large \(|\alpha|\): unnatural mouth/eyes, texture stretching.
-- **Entanglement**: hair edits affecting age or vice versa.
-- **Background leakage**: pose changes can modify background due to the generator’s learned correlations.
-
----
-
-## 8. Discussion
-
-### 8.1 Advantages of latent editing
-
-- **Efficiency**: edit is a single vector addition in latent space.
-- **Controllability**: \(\alpha\) gives a continuous knob over effect magnitude.
-- **High visual fidelity**: edits are synthesized by a strong generator prior.
-
-### 8.2 Limitations of linear directions
-
-InterfaceGAN assumes approximate linear separability. In practice:
-
-- Some attributes are **not purely linear** (complex hairstyles).
-- Edits can be **entangled** with correlated factors (age ↔ hairline, pose ↔ lighting).
-
-### 8.3 Why some attributes are harder
-
-- **Smile**: localized and well-represented in FFHQ, often cleanly editable.
-- **Pose**: structural, but still well-modeled by StyleGAN2; may change background.
-- **Hair**: highly variable, interacts with pose, lighting, and background; harder to isolate as a single semantic factor.
-
----
-
-## 9. Limitations
-
-- **Dependency on pretrained priors**: If the input is far from FFHQ distribution (heavy makeup, extreme lighting, occlusion), inversion quality degrades.
-- **Imperfect inversion**: Reconstruction is a projection onto generator manifold; exact pixel match is not guaranteed.
-- **Limited disentanglement**: Linear edits can cause correlated attribute shifts.
-- **Attribute direction quality**: The edit is only as good as the learned direction vector.
-
----
-
-## 10. Conclusion
-
-This project demonstrates an end-to-end, practical facial attribute editing system combining:
-
-- **StyleGAN2** for high-resolution face synthesis,
-- **e4e** for fast inversion into editable \(W^+\) latents,
-- **InterfaceGAN-style directions** for semantic control.
-
-The pipeline supports controllable editing of **age**, **expression**, **pose**, and **hair**, with a clear \(\alpha\) strength parameter. Results are qualitatively strong when preprocessing and inversion are accurate, while known limitations (entanglement, out-of-distribution inputs) remain areas for future improvement.
-
-### Future improvements
-
-- Use identity losses (e.g., ArcFace) during inversion refinement for stronger identity preservation.
-- Add optimization-based refinement (PTI / latent optimization) as an optional step.
-- Use non-linear edit methods or learned editors for difficult attributes like hair.
-- Add quantitative metrics (ID similarity, LPIPS, FID on reconstructions).
-
----
-
-## 11. References
+## 8. References
 
 1. **GANs**: I. Goodfellow et al., _Generative Adversarial Nets_, NeurIPS 2014.
 2. **StyleGAN**: T. Karras et al., _A Style-Based Generator Architecture for GANs_, CVPR 2019.
